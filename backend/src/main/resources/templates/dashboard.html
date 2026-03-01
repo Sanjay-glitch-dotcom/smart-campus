@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Smart Campus</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">Smart Campus</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3" id="user-info"></span>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Menu</h5>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action active" onclick="showSection('overview')">
+                            <i class="bi bi-house"></i> Overview
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" onclick="showSection('my-issues')">
+                            <i class="bi bi-list-task"></i> My Issues
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" onclick="showSection('new-issue')">
+                            <i class="bi bi-plus-circle"></i> Report Issue
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action" id="assigned-issues-link" style="display: none;" onclick="showSection('assigned-issues')">
+                            <i class="bi bi-clipboard-check"></i> Assigned Issues
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <!-- Overview Section -->
+                <div id="overview-section" class="content-section">
+                    <h2>Dashboard Overview</h2>
+                    <div class="row" id="stats-cards">
+                        <!-- Stats will be loaded here -->
+                    </div>
+                    <div class="mt-4">
+                        <h4>Recent Issues</h4>
+                        <div id="recent-issues">
+                            <!-- Recent issues will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- My Issues Section -->
+                <div id="my-issues-section" class="content-section" style="display: none;">
+                    <h2>My Reported Issues</h2>
+                    <div id="my-issues-list">
+                        <!-- Issues will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- New Issue Section -->
+                <div id="new-issue-section" class="content-section" style="display: none;">
+                    <h2>Report New Issue</h2>
+                    <form id="issueForm">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" rows="4"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="type" class="form-label">Issue Type</label>
+                                <select class="form-select" id="type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="WIFI">WiFi</option>
+                                    <option value="CLASSROOM">Classroom</option>
+                                    <option value="LAB">Lab</option>
+                                    <option value="HOSTEL">Hostel</option>
+                                    <option value="CAFETERIA">Cafeteria</option>
+                                    <option value="LIBRARY">Library</option>
+                                    <option value="SPORTS">Sports</option>
+                                    <option value="ELECTRICITY">Electricity</option>
+                                    <option value="PLUMBING">Plumbing</option>
+                                    <option value="SECURITY">Security</option>
+                                    <option value="OTHER">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="priority" class="form-label">Priority</label>
+                                <select class="form-select" id="priority" required>
+                                    <option value="">Select Priority</option>
+                                    <option value="LOW">Low</option>
+                                    <option value="MEDIUM">Medium</option>
+                                    <option value="HIGH">High</option>
+                                    <option value="URGENT">Urgent</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="building" class="form-label">Building</label>
+                                <input type="text" class="form-control" id="building">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="roomNumber" class="form-label">Room Number</label>
+                                <input type="text" class="form-control" id="roomNumber">
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Submit Issue</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Assigned Issues Section -->
+                <div id="assigned-issues-section" class="content-section" style="display: none;">
+                    <h2>Assigned Issues</h2>
+                    <div id="assigned-issues-list">
+                        <!-- Assigned issues will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>
