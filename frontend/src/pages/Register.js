@@ -7,7 +7,7 @@ export default function Register() {
     const [form, setForm] = useState({
         name: '', email: '', password: '', role: 'STUDENT'
     });
-    const [error,   setError]   = useState('');
+    const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -35,14 +35,14 @@ export default function Register() {
                 <h2 style={styles.title}>Create Account</h2>
                 <p style={styles.subtitle}>Join Smart Campus</p>
 
-                {error   && <div style={styles.error}>{error}</div>}
+                {error && <div style={styles.error}>{error}</div>}
                 {success && <div style={styles.success}>{success}</div>}
 
                 <form onSubmit={handleSubmit}>
                     {[
-                        { label:'Full Name',  name:'name',     type:'text',     placeholder:'John Doe' },
-                        { label:'Email',      name:'email',    type:'email',    placeholder:'you@campus.com' },
-                        { label:'Password',   name:'password', type:'password', placeholder:'Min 6 characters' }
+                        { label:'Full Name', name:'name', type:'text', placeholder:'John Doe' },
+                        { label:'Email', name:'email', type:'email', placeholder:'you@campus.com' },
+                        { label:'Password', name:'password', type:'password', placeholder:'Min 6 characters' }
                     ].map(({ label, name, type, placeholder }) => (
                         <div style={styles.field} key={name}>
                             <label style={styles.label}>{label}</label>
@@ -68,6 +68,7 @@ export default function Register() {
                         >
                             <option value="STUDENT">Student</option>
                             <option value="DEPARTMENT_HEAD">Department Head</option>
+                            <option value="ADMIN">Admin</option>
                         </select>
                     </div>
 
@@ -88,21 +89,21 @@ export default function Register() {
 const styles = {
     container: { minHeight:'100vh', display:'flex', alignItems:'center',
                  justifyContent:'center', background:'#f0f2f5' },
-    card:      { background:'#fff', padding:'40px', borderRadius:'12px',
-                 boxShadow:'0 4px 20px rgba(0,0,0,0.1)', width:'100%', maxWidth:'420px' },
-    title:     { textAlign:'center', color:'#1a73e8', marginBottom:'4px' },
-    subtitle:  { textAlign:'center', color:'#666', marginBottom:'24px', fontSize:'14px' },
-    error:     { background:'#fdecea', color:'#c0392b', padding:'10px',
-                 borderRadius:'6px', marginBottom:'16px', fontSize:'14px' },
-    success:   { background:'#e8f5e9', color:'#2e7d32', padding:'10px',
-                 borderRadius:'6px', marginBottom:'16px', fontSize:'14px' },
-    field:     { marginBottom:'16px' },
-    label:     { display:'block', marginBottom:'6px', fontWeight:'600',
-                 fontSize:'14px', color:'#333' },
-    input:     { width:'100%', padding:'10px 12px', border:'1px solid #ddd',
-                 borderRadius:'6px', fontSize:'14px', boxSizing:'border-box' },
-    button:    { width:'100%', padding:'12px', background:'#1a73e8', color:'#fff',
-                 border:'none', borderRadius:'6px', fontSize:'16px', cursor:'pointer' },
-    footer:    { textAlign:'center', marginTop:'20px', fontSize:'14px', color:'#666' },
-    link:      { color:'#1a73e8', textDecoration:'none', fontWeight:'600' }
+    card: { background:'#fff', padding:'40px', borderRadius:'12px',
+            boxShadow:'0 4px 20px rgba(0,0,0,0.1)', width:'100%', maxWidth:'420px' },
+    title: { textAlign:'center', color:'#1a73e8', marginBottom:'4px' },
+    subtitle: { textAlign:'center', color:'#666', marginBottom:'24px', fontSize:'14px' },
+    error: { background:'#fdecea', color:'#c0392b', padding:'10px',
+             borderRadius:'6px', marginBottom:'16px', fontSize:'14px' },
+    success: { background:'#e8f5e9', color:'#2e7d32', padding:'10px',
+               borderRadius:'6px', marginBottom:'16px', fontSize:'14px' },
+    field: { marginBottom:'16px' },
+    label: { display:'block', marginBottom:'6px', fontWeight:'600',
+             fontSize:'14px', color:'#333' },
+    input: { width:'100%', padding:'10px 12px', border:'1px solid #ddd',
+             borderRadius:'6px', fontSize:'14px', boxSizing:'border-box' },
+    button: { width:'100%', padding:'12px', background:'#1a73e8', color:'#fff',
+              border:'none', borderRadius:'6px', fontSize:'16px', cursor:'pointer' },
+    footer: { textAlign:'center', marginTop:'20px', fontSize:'14px', color:'#666' },
+    link: { color:'#1a73e8', textDecoration:'none', fontWeight:'600' }
 };

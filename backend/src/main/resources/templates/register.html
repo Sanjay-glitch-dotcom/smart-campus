@@ -18,33 +18,30 @@
                     </div>
                     <div class="card-body">
                         <form id="registerForm">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="username" class="form-label">Username</label>
-                                    <input type="text" class="form-control" id="username" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="fullName" class="form-label">Full Name</label>
-                                    <input type="text" class="form-control" id="fullName" required>
-                                </div>
+                            <!-- "name" matches RegisterRequest.name -->
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="name" required>
                             </div>
+                            <!-- "email" matches RegisterRequest.email -->
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" required>
+                                <input type="email" class="form-control" id="email" placeholder="you@example.com" required>
                             </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="password" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="phoneNumber" class="form-label">Phone Number</label>
-                                    <input type="tel" class="form-control" id="phoneNumber" required>
-                                </div>
-                            </div>
+                            <!-- "password" matches RegisterRequest.password (min 6 chars) -->
                             <div class="mb-3">
-                                <label for="department" class="form-label">Department</label>
-                                <input type="text" class="form-control" id="department" placeholder="e.g., Computer Science">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password"
+                                       minlength="6" placeholder="Minimum 6 characters" required>
+                            </div>
+                            <!-- "role" matches RegisterRequest.role enum: STUDENT | ADMIN | DEPARTMENT_HEAD -->
+                            <div class="mb-3">
+                                <label for="role" class="form-label">Role</label>
+                                <select class="form-select" id="role" required>
+                                    <option value="STUDENT">Student</option>
+                                    <option value="DEPARTMENT_HEAD">Department Head</option>
+                                    <option value="ADMIN">Admin</option>
+                                </select>
                             </div>
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary">Register</button>

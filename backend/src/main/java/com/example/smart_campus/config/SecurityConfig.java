@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.io.IOException;
 import java.util.List;
-import java.util.ArrayList;   // ✅ Missing import added
 
 @Configuration
 @EnableWebSecurity
@@ -48,9 +47,83 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final UserService userService;
 
+    /**
+     * JWT filter declared as a @Bean so Spring manages exactly one instance.
+     * The filterChain injects it via the parameter — never calls jwtAuthFilter()
+     * directly — to prevent double-registration.
+     */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public OncePerRequestFilter jwtAuthFilter() {
+        return new OncePerRequestFilter() {
+            @Override
+            protected void doFilterInternal(HttpServletRequest request,
+                                            HttpServletResponse response,
+                                            FilterChain filterChain)
+                    throws ServletException, IOException {
 
+                String path = request.getRequestURI();
+
+                // Skip JWT processing for public auth endpoints and pre-flight requests
+                if (path.startsWith("/api/auth/") || "OPTIONS".equals(request.getMethod())) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                String authHeader = request.getHeader("Authorization");
+
+                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                String token = authHeader.substring(7);
+
+                try {
+                    String username = jwtService.extractUsername(token);
+
+                    if (username != null &&
+                            SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                        UserDetails userDetails = userService.loadUserByUsername(username);
+
+                        if (jwtService.isTokenValid(token, userDetails)) {
+                            Claims claims = jwtService.getClaims(token);
+                            String roles = (String) claims.get("roles");
+
+                            List<SimpleGrantedAuthority> authorities;
+
+                            if (roles != null && !roles.trim().isEmpty()) {
+                                authorities = Arrays.stream(roles.split(","))
+                                        .map(String::trim)
+                                        .filter(r -> !r.isEmpty())
+                                        .map(SimpleGrantedAuthority::new)
+                                        .collect(Collectors.toList());
+                            } else {
+                                authorities = userDetails.getAuthorities().stream()
+                                        .map(auth -> new SimpleGrantedAuthority(auth.getAuthority()))
+                                        .collect(Collectors.toList());
+                            }
+
+                            UsernamePasswordAuthenticationToken authToken =
+                                    new UsernamePasswordAuthenticationToken(
+                                            userDetails, null, authorities);
+
+                            SecurityContextHolder.getContext().setAuthentication(authToken);
+                        }
+                    }
+                } catch (Exception e) {
+                    // Invalid/expired token — continue without authentication
+                    // Spring Security will reject the request at the authorization layer
+                }
+
+                filterChain.doFilter(request, response);
+            }
+        };
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http,
+                                           OncePerRequestFilter jwtAuthFilter) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -58,10 +131,27 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
+                // Allow all pre-flight requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/css/**", "/js/**").permitAll()
 
+                // Public auth endpoints
+                .requestMatchers("/api/auth/**").permitAll()
+
+                // Static assets and SPA — all served publicly
+                .requestMatchers("/", "/static/**", "/favicon.ico",
+                                 "/manifest.json", "/robots.txt",
+                                 "/asset-manifest.json", "/logo192.png",
+                                 "/logo512.png", "/css/**", "/js/**").permitAll()
+
+                // H2 console
+                .requestMatchers("/h2-console/**").permitAll()
+
+                // All non-API routes go to React index.html — permit them
+                .requestMatchers("/login", "/register", "/dashboard",
+                                 "/admin", "/issues", "/edit",
+                                 "/admin/**", "/issues/**").permitAll()
+
+                // Protected API endpoints
                 .requestMatchers("/api/admin/**")
                     .hasAuthority("ROLE_ADMIN")
 
@@ -83,22 +173,26 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/api/issues/**")
                     .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEPARTMENT_HEAD")
 
+                // Everything else requires authentication
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthFilter(),
-                    UsernamePasswordAuthenticationFilter.class);
+            // Inject the managed bean — never call jwtAuthFilter() directly here
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            // Allow H2 console frames
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of(
+        config.setAllowedOriginPatterns(List.of(
                 "http://localhost:3000",
-                "http://localhost:5173"
+                "http://localhost:5173",
+                "http://127.0.0.1:3000",
+                "http://localhost:3001"
         ));
 
         config.setAllowedMethods(List.of(
@@ -113,89 +207,17 @@ public class SecurityConfig {
                 "X-Requested-With"
         ));
 
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return source;
     }
 
     @Bean
-    public OncePerRequestFilter jwtAuthFilter() {
-
-        return new OncePerRequestFilter() {
-
-            @Override
-            protected void doFilterInternal(
-                    HttpServletRequest request,
-                    HttpServletResponse response,
-                    FilterChain filterChain)
-                    throws ServletException, IOException {
-
-                if (request.getMethod().equals("OPTIONS")) {
-                    filterChain.doFilter(request, response);
-                    return;
-                }
-
-                String authHeader = request.getHeader("Authorization");
-
-                if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-                    filterChain.doFilter(request, response);
-                    return;
-                }
-
-                String token = authHeader.substring(7);
-                String username = jwtService.extractUsername(token);
-
-                if (username != null &&
-                        SecurityContextHolder.getContext().getAuthentication() == null) {
-
-                    UserDetails userDetails =
-                            userService.loadUserByUsername(username);
-
-                    if (jwtService.isTokenValid(token, userDetails)) {
-
-                        Claims claims = jwtService.getClaims(token);
-                        String roles = (String) claims.get("roles");
-
-                        List<SimpleGrantedAuthority> authorities;
-
-                        if (roles != null && !roles.trim().isEmpty()) {
-                            authorities = Arrays.stream(roles.split(","))
-                                    .map(SimpleGrantedAuthority::new)
-                                    .collect(Collectors.toList());
-                        } else {
-                            authorities = userDetails.getAuthorities().stream()
-                                            .map(auth -> new SimpleGrantedAuthority(auth.getAuthority()))
-                                            .collect(Collectors.toList());
-                        }
-
-                        UsernamePasswordAuthenticationToken authToken =
-                                new UsernamePasswordAuthenticationToken(
-                                        userDetails,
-                                        null,
-                                        authorities
-                                );
-
-                        SecurityContextHolder.getContext()
-                                .setAuthentication(authToken);
-                    }
-                }
-
-                // ✅ Missing closing brace fixed here
-                filterChain.doFilter(request, response);
-            }
-        };
-    }
-
-    @Bean
-    public AuthenticationManager authManager(
-            AuthenticationConfiguration config) throws Exception {
-
+    public AuthenticationManager authManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 }

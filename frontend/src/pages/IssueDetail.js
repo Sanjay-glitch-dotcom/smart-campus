@@ -2,8 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getIssueById, deleteIssue } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import DarkModeToggle from '../components/DarkModeToggle';
 
 const STATUS_COLORS = {
     OPEN:        { background: '#fff3e0', color: '#e65100' },

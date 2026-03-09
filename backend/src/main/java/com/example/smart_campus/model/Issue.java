@@ -39,6 +39,7 @@ public class Issue {
     private String location;
 
     @Builder.Default
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt;
     private LocalDateTime resolvedAt;

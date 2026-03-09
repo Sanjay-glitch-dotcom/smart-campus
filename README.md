@@ -36,7 +36,7 @@ A full-stack web application for managing campus issues with role-based access c
 |----------|-------|
 | Framework | Spring Boot 3.5.0 with Java 21 |
 | Security | Spring Security with JWT authentication |
-| Database | JPA/Hibernate with MySQL |
+| Database | JPA/Hibernate with H2 (in-memory) for development |
 | Email | JavaMailSender for notifications |
 | Architecture | Layered (Controller, Service, Repository) |
 
@@ -110,7 +110,7 @@ smart-campus/
    mvn spring-boot:run
    ```
 
-The backend will be available at `http://localhost:8080`
+The backend will be available at `http://localhost:8081`
 
 ### Frontend Setup
 
@@ -156,7 +156,7 @@ npm start
 | Service | URL |
 |---------|-----|
 | Frontend | http://localhost:3000 |
-| Backend API | http://localhost:8080 |
+| Backend API | http://localhost:8081 |
 
 ---
 

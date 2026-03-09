@@ -8,6 +8,7 @@ import com.example.smart_campus.repository.IssueRepository;
 import com.example.smart_campus.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,10 +18,11 @@ import java.util.List;
 public class IssueService {
 
     private final IssueRepository issueRepository;
-    private final UserRepository  userRepository;
-    private final EmailService    emailService;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
 
     // ── Create ────────────────────────────────────────────
+    @Transactional
     public IssueResponse createIssue(IssueRequest request, String email) {
         User user = findUserByEmail(email);
 
@@ -39,13 +41,14 @@ public class IssueService {
         try {
             emailService.sendIssueConfirmation(user.getEmail(), saved);
         } catch (Exception e) {
-            System.err.println("Email failed: " + e.getMessage());
+            System.err.println("Email notification failed (non-fatal): " + e.getMessage());
         }
 
         return mapToResponse(saved);
     }
 
     // ── Read: My Issues ───────────────────────────────────
+    @Transactional(readOnly = true)
     public List<IssueResponse> getMyIssues(String email) {
         User user = findUserByEmail(email);
         return issueRepository
@@ -56,11 +59,13 @@ public class IssueService {
     }
 
     // ── Read: Single ──────────────────────────────────────
+    @Transactional(readOnly = true)
     public IssueResponse getIssueById(Long id) {
         return mapToResponse(findIssueById(id));
     }
 
     // ── Read: All ─────────────────────────────────────────
+    @Transactional(readOnly = true)
     public List<IssueResponse> getAllIssues() {
         return issueRepository.findAll()
                 .stream()
@@ -69,16 +74,13 @@ public class IssueService {
     }
 
     // ── Update: Content ───────────────────────────────────
-    public IssueResponse updateIssue(Long id,
-                                     IssueRequest request,
-                                     String email) {
-        Issue issue  = findIssueById(id);
-        User  caller = findUserByEmail(email);
+    @Transactional
+    public IssueResponse updateIssue(Long id, IssueRequest request, String email) {
+        Issue issue = findIssueById(id);
+        User caller = findUserByEmail(email);
 
-        // Admins and dept heads can edit any issue
-        // Students can only edit their own OPEN issues
         boolean isPrivileged = caller.getRole() == User.Role.ADMIN
-                            || caller.getRole() == User.Role.DEPARTMENT_HEAD;
+                || caller.getRole() == User.Role.DEPARTMENT_HEAD;
 
         if (!isPrivileged) {
             if (!issue.getReportedBy().getEmail().equals(email)) {
@@ -100,6 +102,7 @@ public class IssueService {
     }
 
     // ── Update: Status ────────────────────────────────────
+    @Transactional
     public IssueResponse updateStatus(Long id, Issue.Status status) {
         Issue issue = findIssueById(id);
 
@@ -113,24 +116,23 @@ public class IssueService {
         Issue saved = issueRepository.save(issue);
 
         try {
-            emailService.sendStatusUpdate(
-                saved.getReportedBy().getEmail(), saved);
+            emailService.sendStatusUpdate(saved.getReportedBy().getEmail(), saved);
         } catch (Exception e) {
-            System.err.println("Email failed: " + e.getMessage());
+            System.err.println("Email notification failed (non-fatal): " + e.getMessage());
         }
 
         return mapToResponse(saved);
     }
 
     // ── Delete ────────────────────────────────────────────
+    @Transactional
     public void deleteIssue(Long id, String email) {
-        Issue issue  = findIssueById(id);
-        User  caller = findUserByEmail(email);
+        Issue issue = findIssueById(id);
+        User caller = findUserByEmail(email);
 
-        boolean isPrivileged = caller.getRole() == User.Role.ADMIN
-                            || caller.getRole() == User.Role.DEPARTMENT_HEAD;
+        boolean isAdmin = caller.getRole() == User.Role.ADMIN;
 
-        if (!isPrivileged) {
+        if (!isAdmin) {
             if (!issue.getReportedBy().getEmail().equals(email)) {
                 throw new RuntimeException("You can only delete your own issues");
             }
@@ -142,17 +144,15 @@ public class IssueService {
         issueRepository.deleteById(id);
     }
 
-    // ── Helpers ───────────────────────────────────────────
+    // ── Private Helpers ───────────────────────────────────
     private User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                    new RuntimeException("User not found: " + email));
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
     }
 
     private Issue findIssueById(Long id) {
         return issueRepository.findById(id)
-                .orElseThrow(() ->
-                    new RuntimeException("Issue not found: " + id));
+                .orElseThrow(() -> new RuntimeException("Issue not found: " + id));
     }
 
     private IssueResponse mapToResponse(Issue issue) {
