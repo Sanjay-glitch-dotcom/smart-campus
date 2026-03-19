@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class IssueRequest {
 
@@ -21,4 +23,6 @@ public class IssueRequest {
     private Issue.Priority priority;
 
     private String location;
+    
+    private List<String> photoUrls;
 }

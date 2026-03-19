@@ -47,11 +47,6 @@ public class SecurityConfig {
     private final JwtService jwtService;
     private final UserService userService;
 
-    /**
-     * JWT filter declared as a @Bean so Spring manages exactly one instance.
-     * The filterChain injects it via the parameter — never calls jwtAuthFilter()
-     * directly — to prevent double-registration.
-     */
     @Bean
     public OncePerRequestFilter jwtAuthFilter() {
         return new OncePerRequestFilter() {
@@ -63,7 +58,6 @@ public class SecurityConfig {
 
                 String path = request.getRequestURI();
 
-                // Skip JWT processing for public auth endpoints and pre-flight requests
                 if (path.startsWith("/api/auth/") || "OPTIONS".equals(request.getMethod())) {
                     filterChain.doFilter(request, response);
                     return;
@@ -112,8 +106,7 @@ public class SecurityConfig {
                         }
                     }
                 } catch (Exception e) {
-                    // Invalid/expired token — continue without authentication
-                    // Spring Security will reject the request at the authorization layer
+                    // ignore
                 }
 
                 filterChain.doFilter(request, response);
@@ -131,27 +124,26 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                // Allow all pre-flight requests
+
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Public auth endpoints
                 .requestMatchers("/api/auth/**").permitAll()
 
-                // Static assets and SPA — all served publicly
+                // ✅ ADDED HERE
+                .requestMatchers("/api/files/**").permitAll()
+                .requestMatchers("/uploads/**").permitAll()
+
                 .requestMatchers("/", "/static/**", "/favicon.ico",
                                  "/manifest.json", "/robots.txt",
                                  "/asset-manifest.json", "/logo192.png",
                                  "/logo512.png", "/css/**", "/js/**").permitAll()
 
-                // H2 console
                 .requestMatchers("/h2-console/**").permitAll()
 
-                // All non-API routes go to React index.html — permit them
                 .requestMatchers("/login", "/register", "/dashboard",
                                  "/admin", "/issues", "/edit",
                                  "/admin/**", "/issues/**").permitAll()
 
-                // Protected API endpoints
                 .requestMatchers("/api/admin/**")
                     .hasAuthority("ROLE_ADMIN")
 
@@ -173,12 +165,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/api/issues/**")
                     .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEPARTMENT_HEAD")
 
-                // Everything else requires authentication
                 .anyRequest().authenticated()
             )
-            // Inject the managed bean — never call jwtAuthFilter() directly here
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            // Allow H2 console frames
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();

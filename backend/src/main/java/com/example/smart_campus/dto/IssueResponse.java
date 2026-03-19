@@ -1,8 +1,9 @@
 package com.example.smart_campus.dto;
 
-import lombok.Builder;
 import lombok.Data;
+import lombok.Builder;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -17,4 +18,9 @@ public class IssueResponse {
     private String location;
     private LocalDateTime createdAt;
     private LocalDateTime resolvedAt;
+    
+    private List<String> photoUrls;
+    private long upvoteCount;
+    private boolean hasUpvoted;
+    private List<IssueHistoryResponse> history;
 }

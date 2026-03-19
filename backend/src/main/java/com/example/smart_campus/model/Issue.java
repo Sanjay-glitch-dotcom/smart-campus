@@ -3,6 +3,8 @@ package com.example.smart_campus.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "issues")
@@ -32,6 +34,15 @@ public class Issue {
     @Builder.Default
     private Status status = Status.OPEN;
 
+    @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<IssuePhoto> photos = new ArrayList<>();
+
+    @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
+    private List<IssueUpvote> upvotes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "issue", cascade = CascadeType.ALL)
+    private List<IssueHistory> history = new ArrayList<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reported_by", nullable = false)
     private User reportedBy;
@@ -41,6 +52,7 @@ public class Issue {
     @Builder.Default
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
     private LocalDateTime updatedAt;
     private LocalDateTime resolvedAt;
 

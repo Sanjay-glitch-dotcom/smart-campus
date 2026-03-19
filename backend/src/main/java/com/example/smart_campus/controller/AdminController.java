@@ -6,6 +6,7 @@ import com.example.smart_campus.service.IssueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -13,15 +14,15 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminController {
 
     private final IssueService issueService;
     private final IssueRepository issueRepository;
 
     @GetMapping("/issues")
-    public ResponseEntity<List<IssueResponse>> getAllIssues() {
-        return ResponseEntity.ok(issueService.getAllIssues());
+    public ResponseEntity<List<IssueResponse>> getAllIssues(Authentication auth) {
+        return ResponseEntity.ok(issueService.getAllIssues(auth.getName()));
     }
 
     @GetMapping("/dashboard/summary")

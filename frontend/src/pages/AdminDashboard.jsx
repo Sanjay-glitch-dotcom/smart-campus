@@ -40,7 +40,14 @@ export default function AdminDashboard() {
     const handleStatusChange = async (id, newStatus) => {
         try {
             await updateStatus(id, newStatus);
-            fetchData(); // Refresh
+            
+            // ✅ Refresh data immediately
+            const updatedIssues = await getAllIssues();
+            setIssues(updatedIssues.data);
+            
+            const updatedStats = await getDashboardStats();
+            setStats(updatedStats.data);
+            
         } catch (err) {
             alert('Failed to update status');
         }
@@ -52,71 +59,54 @@ export default function AdminDashboard() {
         ? issues
         : issues.filter(i => i.status === filter);
 
+    const handleViewIssue = (issueId) => {
+        navigate(`/issues/${issueId}`);
+    };
+
+    const priorityColor = (p) => ({
+        LOW: '#4caf50',
+        MEDIUM: '#ff9800',
+        HIGH: '#f44336',
+        CRITICAL: '#9c27b0'
+    }[p]);
+
     return (
         <div style={styles.page}>
-            {/* Navbar */}
-            <nav style={styles.nav}>
-                <span style={styles.navBrand}>🏫 Smart Campus — Admin</span>
-                <div style={styles.navRight}>
-                    <span style={styles.navEmail}>{user?.email}</span>
-                    <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
+            <div style={styles.container}>
+                <div style={styles.header}>
+                    <h1 style={styles.title}>Admin Dashboard</h1>
+                    <button onClick={handleLogout} style={styles.logoutBtn}>
+                        Logout
+                    </button>
                 </div>
-            </nav>
 
-            <div style={styles.content}>
-                <h2 style={styles.heading}>Admin Dashboard</h2>
-
-                {/* Stats Cards */}
-                {stats && (
-                    <div style={styles.statsRow}>
-                        <div style={styles.statCard}>
-                            <div style={{ ...styles.statNum, color:'#1a73e8' }}>
-                                {stats.totalIssues}
-                            </div>
-                            <div style={styles.statLabel}>Total Issues</div>
+                <div style={styles.statsGrid}>
+                    {stats && [
+                        { label: 'Total Issues', value: stats.totalIssues, color: '#2196f3' },
+                        { label: 'Open', value: stats.openIssues, color: '#ff9800' },
+                        { label: 'In Progress', value: stats.inProgressIssues, color: '#03a9f4' },
+                        { label: 'Resolved', value: stats.resolvedIssues, color: '#4caf50' }
+                    ].map(({ label, value, color }) => (
+                        <div key={label} style={{ ...styles.statCard, borderColor: color }}>
+                            <div style={{ ...styles.statNumber, color }}>{value}</div>
+                            <div style={styles.statLabel}>{label}</div>
                         </div>
-                        {Object.entries(stats.byStatus || {}).map(([status, count]) => (
-                            <div key={status} style={styles.statCard}>
-                                <div style={{
-                                    ...styles.statNum,
-                                    color: STATUS_COLORS[status]?.color || '#333'
-                                }}>
-                                    {count}
-                                </div>
-                                <div style={styles.statLabel}>
-                                    {status.replace('_',' ')}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Category Breakdown */}
-                {stats?.byCategory && (
-                    <div style={styles.categoryRow}>
-                        {Object.entries(stats.byCategory).map(([cat, count]) => (
-                            <div key={cat} style={styles.catChip}>
-                                <span style={styles.catName}>{cat}</span>
-                                <span style={styles.catCount}>{count}</span>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Filter Tabs */}
-                <div style={styles.tabs}>
-                    {['ALL', ...STATUS_OPTIONS].map(s => (
-                        <button
-                            key={s}
-                            onClick={() => setFilter(s)}
-                            style={{ ...styles.tab, ...(filter === s ? styles.tabActive : {}) }}
-                        >
-                            {s.replace('_',' ')}
-                        </button>
                     ))}
                 </div>
 
-                {/* Issues Table */}
+                <div style={styles.filterRow}>
+                    <select
+                        style={styles.filterSelect}
+                        value={filter}
+                        onChange={(e) => setFilter(e.target.value)}
+                    >
+                        <option value="ALL">All Issues</option>
+                        {STATUS_OPTIONS.map(s => (
+                            <option key={s} value={s}>{s.replace('_',' ')}</option>
+                        ))}
+                    </select>
+                </div>
+
                 {loading ? (
                     <p style={styles.loading}>Loading issues...</p>
                 ) : (
@@ -124,8 +114,8 @@ export default function AdminDashboard() {
                         <table style={styles.table}>
                             <thead>
                                 <tr style={styles.thead}>
-                                    {['ID','Title','Category','Priority',
-                                      'Reported By','Location','Date','Status','Action']
+                                    {['ID','Title','Photos','Category','Priority',
+                                    'Reported By','Location','Date','Status','Action']
                                         .map(h => (
                                         <th key={h} style={styles.th}>{h}</th>
                                     ))}
@@ -139,9 +129,25 @@ export default function AdminDashboard() {
                                             style={idx % 2 === 0 ? styles.trEven : styles.trOdd}>
                                             <td style={styles.td}>#{issue.id}</td>
                                             <td style={{ ...styles.td, fontWeight:'600',
-                                                         maxWidth:'180px' }}>
+                                                         maxWidth:'180px', cursor:'pointer' }}
+                                                onClick={() => handleViewIssue(issue.id)}>
                                                 {issue.title}
                                             </td>
+                                            
+                                            {/* 📸 Photos Column */}
+                                            <td style={styles.td}>
+                                                {issue.photoUrls && issue.photoUrls.length > 0 ? (
+                                                    <div style={styles.photoIndicator}>
+                                                        📸 {issue.photoUrls.length}
+                                                        <div style={styles.photoTooltip}>
+                                                            Click issue title to view photos
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <span style={styles.noPhotos}>—</span>
+                                                )}
+                                            </td>
+                                            
                                             <td style={styles.td}>{issue.category}</td>
                                             <td style={styles.td}>
                                                 <span style={{
@@ -187,7 +193,7 @@ export default function AdminDashboard() {
                             </tbody>
                         </table>
                         {filtered.length === 0 && (
-                            <p style={styles.noData}>No issues found for this filter.</p>
+                            <p style={styles.noIssues}>No issues found.</p>
                         )}
                     </div>
                 )}
@@ -196,52 +202,75 @@ export default function AdminDashboard() {
     );
 }
 
-const priorityColor = (p) => ({
-    LOW:'#4caf50', MEDIUM:'#ff9800', HIGH:'#f44336', CRITICAL:'#9c27b0'
-}[p] || '#999');
-
 const styles = {
-    page:       { minHeight:'100vh', background:'#f0f2f5', fontFamily:'sans-serif' },
-    nav:        { background:'#1a1a2e', padding:'14px 24px', display:'flex',
-                  alignItems:'center', justifyContent:'space-between' },
-    navBrand:   { color:'#fff', fontSize:'18px', fontWeight:'700' },
-    navRight:   { display:'flex', alignItems:'center', gap:'12px' },
-    navEmail:   { color:'rgba(255,255,255,0.7)', fontSize:'13px' },
-    logoutBtn:  { background:'transparent', border:'1px solid rgba(255,255,255,0.4)',
-                  color:'#fff', padding:'7px 14px', borderRadius:'6px',
-                  cursor:'pointer', fontSize:'13px' },
-    content:    { maxWidth:'1300px', margin:'0 auto', padding:'32px 24px' },
-    heading:    { fontSize:'26px', color:'#1a1a2e', marginBottom:'24px' },
-    statsRow:   { display:'flex', gap:'16px', marginBottom:'16px', flexWrap:'wrap' },
-    statCard:   { background:'#fff', padding:'20px 28px', borderRadius:'10px',
-                  boxShadow:'0 2px 8px rgba(0,0,0,0.07)', textAlign:'center',
-                  flex:'1', minWidth:'110px' },
-    statNum:    { fontSize:'30px', fontWeight:'700' },
-    statLabel:  { color:'#666', fontSize:'12px', marginTop:'4px', textTransform:'uppercase' },
-    categoryRow:{ display:'flex', gap:'8px', flexWrap:'wrap', marginBottom:'24px' },
-    catChip:    { background:'#e8f0fe', borderRadius:'20px', padding:'6px 14px',
-                  display:'flex', alignItems:'center', gap:'8px' },
-    catName:    { color:'#1a73e8', fontSize:'13px', fontWeight:'600' },
-    catCount:   { background:'#1a73e8', color:'#fff', borderRadius:'10px',
-                  padding:'2px 8px', fontSize:'12px' },
-    tabs:       { display:'flex', gap:'8px', marginBottom:'20px', flexWrap:'wrap' },
-    tab:        { padding:'8px 16px', border:'1px solid #ddd', borderRadius:'20px',
-                  background:'#fff', cursor:'pointer', fontSize:'13px', color:'#555' },
-    tabActive:  { background:'#1a1a2e', color:'#fff', border:'1px solid #1a1a2e' },
-    tableWrap:  { background:'#fff', borderRadius:'10px', overflow:'auto',
-                  boxShadow:'0 2px 8px rgba(0,0,0,0.07)' },
-    table:      { width:'100%', borderCollapse:'collapse', minWidth:'900px' },
-    thead:      { background:'#1a1a2e' },
-    th:         { padding:'14px 16px', color:'#fff', textAlign:'left',
-                  fontSize:'13px', fontWeight:'600', whiteSpace:'nowrap' },
-    trEven:     { background:'#fff' },
-    trOdd:      { background:'#f8f9fa' },
-    td:         { padding:'12px 16px', fontSize:'13px', color:'#333',
-                  borderBottom:'1px solid #eee', verticalAlign:'middle' },
-    badge:      { padding:'4px 10px', borderRadius:'12px', fontSize:'12px',
-                  fontWeight:'600', whiteSpace:'nowrap' },
-    select:     { padding:'6px 10px', border:'1px solid #ddd', borderRadius:'6px',
-                  fontSize:'12px', cursor:'pointer', background:'#fff' },
-    loading:    { textAlign:'center', padding:'40px', color:'#666' },
-    noData:     { textAlign:'center', padding:'40px', color:'#999' }
+    page: { minHeight: '100vh', background: 'var(--bg-tertiary)', padding: '24px' },
+    container: { maxWidth: '1400px', margin: '0 auto' },
+    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' },
+    title: { margin: 0, fontSize: '28px', color: 'var(--text-primary)' },
+    logoutBtn: {
+        background: '#f44336', color: '#fff', border: 'none',
+        padding: '10px 20px', borderRadius: '6px', cursor: 'pointer',
+        fontSize: '14px', fontWeight: '600'
+    },
+    statsGrid: {
+        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))',
+        gap: '20px', marginBottom: '32px'
+    },
+    statCard: {
+        background: 'var(--card-bg)', padding: '24px', borderRadius: '12px',
+        textAlign: 'center', border: '2px solid', borderBottom: '4px solid'
+    },
+    statNumber: { fontSize: '32px', fontWeight: '700', marginBottom: '8px' },
+    statLabel: { fontSize: '14px', color: 'var(--text-secondary)', fontWeight: '600' },
+    filterRow: { marginBottom: '20px' },
+    filterSelect: {
+        padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border-color)',
+        background: 'var(--card-bg)', fontSize: '14px'
+    },
+    loading: { textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' },
+    tableWrap: {
+        background: 'var(--card-bg)', borderRadius: '12px', overflow: 'hidden',
+        border: '1px solid var(--border-color)'
+    },
+    table: { width: '100%', borderCollapse: 'collapse' },
+    thead: { background: 'var(--bg-tertiary)' },
+    th: {
+        padding: '14px', textAlign: 'left', fontWeight: '600',
+        fontSize: '13px', color: 'var(--text-primary)', borderBottom: '2px solid var(--border-color)'
+    },
+    trEven: { background: 'var(--card-bg)' },
+    trOdd: { background: 'var(--bg-tertiary)' },
+    td: { padding: '14px', borderBottom: '1px solid var(--border-color)', fontSize: '14px' },
+    badge: {
+        padding: '4px 10px', borderRadius: '12px', fontSize: '12px',
+        fontWeight: '600', display: 'inline-block'
+    },
+    select: {
+        padding: '6px 10px', borderRadius: '4px', border: '1px solid var(--border-color)',
+        background: '#fff', fontSize: '13px', cursor: 'pointer'
+    },
+    noIssues: { textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' },
+    
+    // 📸 Photo Indicator Styles
+    photoIndicator: {
+        position: 'relative', display: 'inline-block',
+        padding: '4px 8px', background: '#e3f2fd',
+        color: '#1565c0', borderRadius: '12px',
+        fontSize: '12px', fontWeight: '600', cursor: 'default'
+    },
+    photoTooltip: {
+        position: 'absolute', bottom: '100%', left: '50%',
+        transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.8)',
+        color: '#fff', padding: '4px 8px', borderRadius: '4px',
+        fontSize: '11px', whiteSpace: 'nowrap',
+        opacity: 0, pointerEvents: 'none', transition: 'opacity 0.2s'
+    },
+    noPhotos: { color: '#999', fontSize: '12px' }
 };
+
+// Add hover effect for photo tooltip
+if (typeof document !== 'undefined') {
+    document.styleSheets[0].insertRule(`
+        .photoIndicator:hover .photoTooltip { opacity: 1; }
+    `, document.styleSheets[0].cssRules.length);
+}

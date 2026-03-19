@@ -4,8 +4,10 @@ import com.example.smart_campus.model.Issue;
 import com.example.smart_campus.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import java.util.List;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
+@Repository // Add this annotation
 public interface IssueRepository extends JpaRepository<Issue, Long> {
     List<Issue> findByReportedBy(User user);
     List<Issue> findByStatus(Issue.Status status);

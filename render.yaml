@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: smart-campus-backend
+    env: java
+    plan: free
+    buildCommand: cd backend && ./mvnw clean install -DskipTests
+    startCommand: cd backend && java -jar target/smart_campus-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: JAVA_VERSION
+        value: 21
+      - key: EMAIL_PASSWORD
+        sync: false
+databases:
+  - name: smart-campus-db
+    plan: free

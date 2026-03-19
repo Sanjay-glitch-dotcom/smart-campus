@@ -43,15 +43,17 @@ public class IssueController {
     // ── Read: Single Issue ────────────────────────────────
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_STUDENT','ROLE_ADMIN','ROLE_DEPARTMENT_HEAD')")
-    public ResponseEntity<IssueResponse> getIssueById(@PathVariable Long id) {
-        return ResponseEntity.ok(issueService.getIssueById(id));
+    public ResponseEntity<IssueResponse> getIssueById(
+            @PathVariable Long id,
+            Authentication auth) {
+        return ResponseEntity.ok(issueService.getIssueById(id, auth.getName()));
     }
 
     // ── Read: All Issues ──────────────────────────────────
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_DEPARTMENT_HEAD')")
-    public ResponseEntity<List<IssueResponse>> getAllIssues() {
-        return ResponseEntity.ok(issueService.getAllIssues());
+    public ResponseEntity<List<IssueResponse>> getAllIssues(Authentication auth) {
+        return ResponseEntity.ok(issueService.getAllIssues(auth.getName()));
     }
 
     // ── Update: Edit Issue Content ────────────────────────
@@ -63,7 +65,7 @@ public class IssueController {
             Authentication auth) {
         try {
             return ResponseEntity.ok(
-                issueService.updateIssue(id, request, auth.getName()));
+                    issueService.updateIssue(id, request, auth.getName()));
         } catch (RuntimeException e) {
             return ResponseEntity.status(403)
                     .body(Map.of("message", e.getMessage()));
@@ -75,8 +77,21 @@ public class IssueController {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_DEPARTMENT_HEAD')")
     public ResponseEntity<IssueResponse> updateStatus(
             @PathVariable Long id,
-            @RequestParam Issue.Status status) {
-        return ResponseEntity.ok(issueService.updateStatus(id, status));
+            @RequestParam Issue.Status status,
+            Authentication auth) {
+        return ResponseEntity.ok(
+                issueService.updateStatus(id, status, auth.getName()));
+    }
+
+    // ── Upvote System ─────────────────────────────────────
+    @PutMapping("/{id}/upvote")   // ✅ FIXED: use PUT (matches frontend)
+    @PreAuthorize("hasAnyAuthority('ROLE_STUDENT','ROLE_ADMIN','ROLE_DEPARTMENT_HEAD')")
+    public ResponseEntity<Map<String, String>> toggleUpvote(
+            @PathVariable Long id,
+            Authentication auth) {
+        issueService.toggleUpvote(id, auth.getName());
+        return ResponseEntity.ok(
+                Map.of("message", "Upvote toggled successfully"));
     }
 
     // ── Delete ────────────────────────────────────────────
@@ -88,7 +103,7 @@ public class IssueController {
         try {
             issueService.deleteIssue(id, auth.getName());
             return ResponseEntity.ok(
-                Map.of("message", "Issue deleted successfully"));
+                    Map.of("message", "Issue deleted successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(403)
                     .body(Map.of("message", e.getMessage()));
