@@ -1,7 +1,0 @@
-[services]
-name = "smart-campus-backend"
-source = "backend"
-
-[services.variables]
-JAVA_VERSION = "21"
-PORT = "8082"
