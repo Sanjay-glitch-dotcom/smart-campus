@@ -1,0 +1,16 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "cd backend && ./mvnw clean package -DskipTests"
+
+[deploy]
+startCommand = "cd backend && java -jar target/smart_campus-0.0.1-SNAPSHOT.jar"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+[[services]]
+name = "smart-campus-backend"
+source = "."
+
+[services.variables]
+JAVA_VERSION = "21"
+PORT = "8080"

@@ -10,7 +10,7 @@ services:
         value: 21
       - key: EMAIL_PASSWORD
         sync: false
-      # ✅ Add these for production
+      # Production database variables
       - key: DB_URL
         value: ${DATABASE_URL}
       - key: DB_USERNAME
