@@ -13,3 +13,4 @@ source = "."
 [services.variables]
 JAVA_VERSION = "21"
 PORT = "8082"
+NIXPACKS_BUILD_CMD = "cd backend && chmod +x mvnw && ./mvnw clean package -DskipTests"
