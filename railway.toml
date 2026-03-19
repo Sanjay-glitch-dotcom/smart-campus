@@ -5,5 +5,3 @@ source = "backend"
 [services.variables]
 JAVA_VERSION = "21"
 PORT = "8082"
-NIXPACKS_BUILD_CMD = "mvn clean package -DskipTests"
-NIXPACKS_START_CMD = "./start.sh"
