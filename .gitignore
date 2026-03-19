@@ -1,4 +1,7 @@
 .vscode/
 backend/target/
+backend/data/
+backend/uploads/
+*.mv.db
 frontend/node_modules/
 frontend/.env
