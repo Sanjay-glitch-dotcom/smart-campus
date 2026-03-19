@@ -79,7 +79,7 @@ export default function IssueForm() {
                 const formData = new FormData();
                 formData.append('file', file);
 
-                const response = await fetch('http://localhost:8082/api/files/upload', {
+                const response = await fetch('https://smart-campus-backend-production-8019.up.railway.app/api/files/upload', {
                     method: 'POST',
                     body: formData
                 });

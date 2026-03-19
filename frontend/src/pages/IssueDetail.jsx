@@ -140,10 +140,10 @@ export default function IssueDetail() {
                             {issue.photoUrls.map((url, index) => (
                                 <div key={index} style={styles.photoContainer}>
                                     <img
-                                        src={`http://localhost:8082${url}`}
+                                        src={`https://smart-campus-backend-production-8019.up.railway.app${url}`}
                                         alt={`Issue ${index}`}
                                         style={styles.photo}
-                                        onClick={() => setSelectedPhoto(`http://localhost:8082${url}`)}
+                                        onClick={() => setSelectedPhoto(`https://smart-campus-backend-production-8019.up.railway.app${url}`)}
                                     />
                                 </div>
                             ))}

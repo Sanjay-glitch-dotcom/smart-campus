@@ -47,7 +47,7 @@ export default function EditIssue() {
 
                 // Load existing photos
                 setExistingPhotos(issue.photoUrls || []);
-                setPreview(issue.photoUrls?.map(url => `http://localhost:8082${url}`) || []);
+                setPreview(issue.photoUrls?.map(url => `https://smart-campus-backend-production-8019.up.railway.app${url}`) || []);
             })
             .catch(() => {
                 setError('Failed to load issue.');
@@ -70,7 +70,7 @@ export default function EditIssue() {
     const clearNewPhotos = () => {
         setPhotos([]);
         // Keep existing photos, only remove new ones
-        setPreview(existingPhotos.map(url => `http://localhost:8082${url}`));
+        setPreview(existingPhotos.map(url => `https://smart-campus-backend-production-8019.up.railway.app${url}`));
     };
 
     const removePhoto = (index) => {
@@ -101,7 +101,7 @@ export default function EditIssue() {
                 const formData = new FormData();
                 formData.append('file', file);
 
-                const response = await fetch('http://localhost:8082/api/files/upload', {
+                const response = await fetch('https://smart-campus-backend-production-8019.up.railway.app/api/files/upload', {
                     method: 'POST',
                     body: formData
                 });
