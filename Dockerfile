@@ -11,4 +11,4 @@ RUN mvn clean package -DskipTests
 
 EXPOSE 8082
 
-CMD ["java", "-jar", "target/smart_campus-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "./target/smart_campus-0.0.1-SNAPSHOT.jar"]
