@@ -10,6 +10,13 @@ services:
         value: 21
       - key: EMAIL_PASSWORD
         sync: false
+      # ✅ Add these for production
+      - key: DB_URL
+        value: ${DATABASE_URL}
+      - key: DB_USERNAME
+        value: ${DATABASE_USERNAME}
+      - key: DB_PASSWORD
+        value: ${DATABASE_PASSWORD}
 databases:
   - name: smart-campus-db
     plan: free
