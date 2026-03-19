@@ -1,9 +1,8 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "cd backend && ./mvnw clean package -DskipTests"
 
 [deploy]
-startCommand = "cd backend && java -jar target/smart_campus-0.0.1-SNAPSHOT.jar"
+startCommand = "cd backend && chmod +x mvnw && ./mvnw spring-boot:run"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
@@ -13,4 +12,4 @@ source = "."
 
 [services.variables]
 JAVA_VERSION = "21"
-PORT = "8080"
+PORT = "8082"
