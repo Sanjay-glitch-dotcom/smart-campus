@@ -2,7 +2,7 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "cd backend && chmod +x mvnw && ./mvnw spring-boot:run"
+startCommand = "cd backend && mvn spring-boot:run"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
@@ -13,4 +13,4 @@ source = "."
 [services.variables]
 JAVA_VERSION = "21"
 PORT = "8082"
-NIXPACKS_BUILD_CMD = "cd backend && chmod +x mvnw && ./mvnw clean package -DskipTests"
+NIXPACKS_BUILD_CMD = "cd backend && mvn clean package -DskipTests"
