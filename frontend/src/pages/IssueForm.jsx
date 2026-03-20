@@ -72,22 +72,32 @@ export default function IssueForm() {
         setLoading(true);
 
         try {
-            // 1. Upload photos
-            const photoUrls = [];
+            // 1. Upload photos in parallel for better performance
+            let photoUrls = [];
+            
+            if (photos.length > 0) {
+                const uploadPromises = photos.map(async (file) => {
+                    const formData = new FormData();
+                    formData.append('file', file);
 
-            for (const file of photos) {
-                const formData = new FormData();
-                formData.append('file', file);
+                    const response = await fetch('https://smart-campus-backend-production-8019.up.railway.app/api/files/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
 
-                const response = await fetch('https://smart-campus-backend-production-8019.up.railway.app/api/files/upload', {
-                    method: 'POST',
-                    body: formData
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        throw new Error(`Failed to upload ${file.name}`);
+                    }
+                    
+                    return result.photoUrl;
                 });
 
-                const result = await response.json();
-
-                if (result.success) {
-                    photoUrls.push(result.photoUrl);
+                try {
+                    photoUrls = await Promise.all(uploadPromises);
+                } catch (uploadError) {
+                    throw new Error('Photo upload failed: ' + uploadError.message);
                 }
             }
 
@@ -110,10 +120,11 @@ export default function IssueForm() {
                 setSuccess('Issue submitted successfully!');
             }
 
-            setTimeout(() => navigate('/dashboard'), 2000);
+            // 4. Navigate after a short delay to show success message
+            setTimeout(() => navigate('/dashboard'), 1500);
 
         } catch (err) {
-            setError(err.message || 'Something went wrong');
+            setError(err.message || 'Something went wrong. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -278,6 +289,9 @@ export default function IssueForm() {
                     </button>
                 </form>
             </div>
+
+            {error && <div style={styles.error}>{error}</div>}
+            {success && <div style={styles.success}>{success}</div>}
         </div>
     );
 }
@@ -289,16 +303,18 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px'
+        padding: '16px',
+        boxSizing: 'border-box'
     },
     card: {
         background: 'var(--card-bg)',
         borderRadius: '12px',
-        padding: '40px',
+        padding: 'clamp(20px, 5vw, 40px)',
         width: '100%',
         maxWidth: '620px',
         boxShadow: 'var(--shadow)',
-        border: '1px solid var(--border-color)'
+        border: '1px solid var(--border-color)',
+        boxSizing: 'border-box'
     },
     header: { marginBottom: '28px' },
     back: {
@@ -333,7 +349,12 @@ const styles = {
         fontSize: '14px'
     },
     field: { marginBottom: '18px' },
-    row: { display: 'flex', gap: '16px' },
+    row: { 
+        display: 'flex', 
+        gap: '16px',
+        flexDirection: 'row',
+        flexWrap: 'wrap'
+    },
     label: {
         display: 'block',
         marginBottom: '6px',
@@ -342,36 +363,39 @@ const styles = {
         color: 'var(--text-primary)'
     },
     input: {
-        width: '100%',
-        padding: '10px 12px',
-        border: '1px solid var(--border-color)',
-        borderRadius: '6px',
-        fontSize: '14px',
-        boxSizing: 'border-box',
-        background: 'var(--input-bg)',
-        color: 'var(--text-primary)'
+        width:'100%',
+        padding:'12px',
+        border:'1px solid var(--border-color)',
+        borderRadius:'6px',
+        fontSize:'16px',
+        boxSizing:'border-box',
+        background:'var(--input-bg)',
+        color:'var(--text-primary)',
+        minHeight: '44px' // Touch-friendly
     },
     textarea: {
-        width: '100%',
-        padding: '10px 12px',
-        border: '1px solid var(--border-color)',
-        borderRadius: '6px',
-        fontSize: '14px',
-        boxSizing: 'border-box',
-        resize: 'vertical',
-        background: 'var(--input-bg)',
-        color: 'var(--text-primary)'
+        width:'100%',
+        padding:'12px',
+        border:'1px solid var(--border-color)',
+        borderRadius:'6px',
+        fontSize:'16px',
+        boxSizing:'border-box',
+        resize:'vertical',
+        background:'var(--input-bg)',
+        color:'var(--text-primary)',
+        minHeight: '120px' // Touch-friendly
     },
     button: {
-        width: '100%',
-        padding: '13px',
-        background: 'var(--button-primary)',
-        color: '#fff',
-        border: 'none',
-        borderRadius: '6px',
-        fontSize: '16px',
-        cursor: 'pointer',
-        fontWeight: '600'
+        width:'100%',
+        padding:'12px',
+        background:'var(--button-primary)',
+        color:'#fff',
+        border:'none',
+        borderRadius:'6px',
+        fontSize:'16px',
+        cursor:'pointer',
+        fontWeight:'600',
+        minHeight: '48px' // Touch-friendly
     },
     // 🎨 New Photo Upload Styles
     photoButtons: {

@@ -7,7 +7,30 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         const role  = localStorage.getItem('role');
         const email = localStorage.getItem('email');
-        return token ? { token, role, email } : null;
+        
+        // Validate token exists and is not expired
+        if (token) {
+            try {
+                // Basic token validation (you can add more sophisticated validation)
+                const tokenData = JSON.parse(atob(token.split('.')[1]));
+                const isExpired = tokenData.exp * 1000 < Date.now();
+                
+                if (!isExpired) {
+                    return { token, role, email };
+                } else {
+                    // Clear expired token
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('role');
+                    localStorage.removeItem('email');
+                }
+            } catch (error) {
+                // Invalid token format, clear it
+                localStorage.removeItem('token');
+                localStorage.removeItem('role');
+                localStorage.removeItem('email');
+            }
+        }
+        return null;
     });
 
     // AuthContext.js — confirm this exists

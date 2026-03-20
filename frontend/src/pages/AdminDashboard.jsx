@@ -203,8 +203,17 @@ export default function AdminDashboard() {
 }
 
 const styles = {
-    page: { minHeight: '100vh', background: 'var(--bg-tertiary)', padding: '24px' },
-    container: { maxWidth: '1400px', margin: '0 auto' },
+    page: { 
+        minHeight: '100vh', 
+        background: 'var(--bg-tertiary)', 
+        padding: '24px',
+        overflowX: 'auto' // Allow horizontal scroll on small screens
+    },
+    container: { 
+        maxWidth: '1400px', 
+        margin: '0 auto',
+        minWidth: '300px' // Ensure minimum width
+    },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' },
     title: { margin: 0, fontSize: '28px', color: 'var(--text-primary)' },
     logoutBtn: {
@@ -229,10 +238,18 @@ const styles = {
     },
     loading: { textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' },
     tableWrap: {
-        background: 'var(--card-bg)', borderRadius: '12px', overflow: 'hidden',
-        border: '1px solid var(--border-color)'
+        background: 'var(--card-bg)', 
+        borderRadius: '12px', 
+        overflow: 'auto',
+        maxHeight: '70vh', // Enable vertical scrolling
+        border: '1px solid var(--border-color)',
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
     },
-    table: { width: '100%', borderCollapse: 'collapse' },
+    table: { 
+        width: '100%', 
+        borderCollapse: 'collapse',
+        minWidth: '800px' // Ensure table has minimum width for horizontal scroll
+    },
     thead: { background: 'var(--bg-tertiary)' },
     th: {
         padding: '14px', textAlign: 'left', fontWeight: '600',
