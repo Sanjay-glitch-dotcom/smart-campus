@@ -47,7 +47,31 @@ A full-stack web application for managing campus issues with role-based access c
 | HTTP Client | Axios |
 | Styling | CSS variables with dark mode support |
 | State Management | React Context API |
-| Build Tool | Create React App |
+| Build Tool | Vite |
+| Deployment | Vercel |
+
+---
+
+## 🚀 Deployment
+
+### Vercel Deployment
+This project is configured for deployment on Vercel:
+
+- **Frontend**: React app with Vite build system
+- **Backend**: Spring Boot Java application
+- **Build Configuration**: `vercel.json`
+- **Automatic Deployments**: Connected to GitHub repository
+
+To deploy to Vercel:
+1. Connect your GitHub repository to Vercel
+2. Vercel will auto-detect the framework and build settings
+3. Deploy automatically on every push to main branch
+
+### Environment Variables
+Configure these in Vercel dashboard:
+- `DATABASE_URL` - MySQL database connection
+- `JWT_SECRET` - JWT signing key
+- `EMAIL_HOST` - SMTP server for notifications
 
 ---
 
