@@ -80,9 +80,10 @@ export default function IssueForm() {
                     const formData = new FormData();
                     formData.append('file', file);
 
-                    const response = await fetch('https://smart-campus-backend-production-8019.up.railway.app/api/files/upload', {
+                    const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://smart-campus-backend-production-8019.up.railway.app/api'}/files/upload`, {
                         method: 'POST',
-                        body: formData
+                        body: formData,
+                        signal: AbortSignal.timeout(30000) // 30 second timeout
                     });
 
                     const result = await response.json();
