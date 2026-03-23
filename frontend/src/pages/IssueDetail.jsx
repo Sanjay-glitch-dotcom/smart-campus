@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getIssueById, deleteIssue } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { getImageUrl } from '../utils/helpers';
 
 const STATUS_COLORS = {
     OPEN:        { background: '#fff3e0', color: '#e65100' },
@@ -140,10 +141,10 @@ export default function IssueDetail() {
                             {issue.photoUrls.map((url, index) => (
                                 <div key={index} style={styles.photoContainer}>
                                     <img
-                                        src={`https://smart-campus-backend-production-8019.up.railway.app${url}`}
+                                        src={getImageUrl(url)}
                                         alt={`Issue ${index}`}
                                         style={styles.photo}
-                                        onClick={() => setSelectedPhoto(`https://smart-campus-backend-production-8019.up.railway.app${url}`)}
+                                        onClick={() => setSelectedPhoto(getImageUrl(url))}
                                     />
                                 </div>
                             ))}

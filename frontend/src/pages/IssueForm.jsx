@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { submitIssue, getIssueById, updateIssue } from '../services/api';
 import SelectBox from '../components/SelectBox';
 import { CATEGORY_OPTIONS, PRIORITY_OPTIONS } from '../utils/constants';
+import { getApiUrl } from '../utils/helpers';
 
 export default function IssueForm() {
     const navigate = useNavigate();
@@ -80,7 +81,7 @@ export default function IssueForm() {
                     const formData = new FormData();
                     formData.append('file', file);
 
-                    const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://smart-campus-backend-production-8019.up.railway.app/api'}/files/upload`, {
+                    const response = await fetch(`${getApiUrl()}/files/upload`, {
                         method: 'POST',
                         body: formData,
                         signal: AbortSignal.timeout(30000) // 30 second timeout
@@ -88,8 +89,12 @@ export default function IssueForm() {
 
                     const result = await response.json();
                     
+                    if (!response.ok) {
+                        throw new Error(result.message || `Failed to upload ${file.name}`);
+                    }
+                    
                     if (!result.success) {
-                        throw new Error(`Failed to upload ${file.name}`);
+                        throw new Error(result.message || `Failed to upload ${file.name}`);
                     }
                     
                     return result.photoUrl;

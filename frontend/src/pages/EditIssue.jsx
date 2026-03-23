@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getIssueById, updateIssue } from '../services/api';
 import SelectBox from '../components/SelectBox';
 import { CATEGORY_OPTIONS, PRIORITY_OPTIONS } from '../utils/constants';
+import { getImageUrl, getApiUrl } from '../utils/helpers';
 
 export default function EditIssue() {
     const { id }   = useParams();
@@ -47,7 +48,7 @@ export default function EditIssue() {
 
                 // Load existing photos
                 setExistingPhotos(issue.photoUrls || []);
-                setPreview(issue.photoUrls?.map(url => `https://smart-campus-backend-production-8019.up.railway.app${url}`) || []);
+                setPreview(issue.photoUrls?.map(url => getImageUrl(url)) || []);
             })
             .catch(() => {
                 setError('Failed to load issue.');
@@ -70,7 +71,7 @@ export default function EditIssue() {
     const clearNewPhotos = () => {
         setPhotos([]);
         // Keep existing photos, only remove new ones
-        setPreview(existingPhotos.map(url => `https://smart-campus-backend-production-8019.up.railway.app${url}`));
+        setPreview(existingPhotos.map(url => getImageUrl(url)));
     };
 
     const removePhoto = (index) => {
@@ -101,7 +102,7 @@ export default function EditIssue() {
                 const formData = new FormData();
                 formData.append('file', file);
 
-                const response = await fetch('https://smart-campus-backend-production-8019.up.railway.app/api/files/upload', {
+                const response = await fetch(`${getApiUrl()}/files/upload`, {
                     method: 'POST',
                     body: formData
                 });
