@@ -185,7 +185,8 @@ public class SecurityConfig {
                 "http://127.0.0.1:3000",
                 "http://localhost:3001",
                 "https://smart-campus-frontend.onrender.com",
-                "https://smart-campus-frontend.vercel.app"
+                "https://smart-campus-frontend.vercel.app",
+                "https://smart-campus-green.vercel.app"
         ));
 
         config.setAllowedMethods(List.of(
