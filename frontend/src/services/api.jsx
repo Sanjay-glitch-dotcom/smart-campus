@@ -51,4 +51,7 @@ export const getDashboardStats = () => api.get('/admin/dashboard/summary');
 
 export const getAllIssuesForDeptHead = () => api.get('/issues');
 
+// ── AI Classification ───────────────────────
+export const classifyIssue = (description) => api.post('/ai/classify', { description });
+
 export default api;

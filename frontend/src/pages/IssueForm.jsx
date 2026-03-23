@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'; 
 import { useNavigate, useParams } from 'react-router-dom';
-import { submitIssue, getIssueById, updateIssue } from '../services/api';
+import { submitIssue, getIssueById, updateIssue, classifyIssue } from '../services/api';
 import SelectBox from '../components/SelectBox';
 import { CATEGORY_OPTIONS, PRIORITY_OPTIONS } from '../utils/constants';
 import { getApiUrl } from '../utils/helpers';
@@ -21,6 +21,7 @@ export default function IssueForm() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
+    const [aiClassifying, setAiClassifying] = useState(false);
 
     const [photos, setPhotos] = useState([]);
     const [preview, setPreview] = useState([]);
@@ -42,8 +43,36 @@ export default function IssueForm() {
         }
     }, [id, isEdit]);
 
-    const handleChange = (e) =>
+    const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
+        
+        // Trigger AI classification when description changes
+        if (e.target.name === 'description' && e.target.value.length > 10) {
+            classifyDescription(e.target.value);
+        }
+    };
+
+    const classifyDescription = async (description) => {
+        if (aiClassifying) return; // Prevent multiple simultaneous calls
+        
+        setAiClassifying(true);
+        try {
+            const response = await classifyIssue(description);
+            const { category, priority } = response.data;
+            
+            // Update form with AI-suggested values
+            setForm(prev => ({
+                ...prev,
+                category: category || prev.category,
+                priority: priority || prev.priority
+            }));
+        } catch (err) {
+            console.warn('AI classification failed:', err);
+            // Silently fail - user can still manually select
+        } finally {
+            setAiClassifying(false);
+        }
+    };
 
     const handlePhotoChange = (e) => {
         const files = Array.from(e.target.files);
@@ -175,6 +204,7 @@ export default function IssueForm() {
                                 placeholder="-- Select Category --"
                                 required
                             />
+                            {aiClassifying && <small style={styles.aiHint}>AI will suggest category based on description</small>}
                         </div>
                         <div style={{ ...styles.field, flex: 1 }}>
                             <SelectBox
@@ -186,6 +216,7 @@ export default function IssueForm() {
                                 placeholder="-- Select Priority --"
                                 required
                             />
+                            {aiClassifying && <small style={styles.aiHint}>AI will suggest priority based on description</small>}
                         </div>
                     </div>
 
@@ -201,11 +232,14 @@ export default function IssueForm() {
                     </div>
 
                     <div style={styles.field}>
-                        <label style={styles.label}>Description *</label>
+                        <label style={styles.label}>
+                            Description *
+                            {aiClassifying && <span style={styles.aiIndicator}> 🤖 AI is categorizing...</span>}
+                        </label>
                         <textarea
                             style={styles.textarea}
                             name="description"
-                            placeholder="Describe the issue in detail..."
+                            placeholder="Describe the issue in detail... (AI will auto-categorize)"
                             value={form.description}
                             onChange={handleChange}
                             rows={5}
@@ -479,5 +513,18 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
+    },
+    aiIndicator: {
+        fontSize: '12px',
+        color: '#007bff',
+        fontStyle: 'italic',
+        marginLeft: '8px'
+    },
+    aiHint: {
+        color: '#6c757d',
+        fontSize: '11px',
+        fontStyle: 'italic',
+        marginTop: '4px',
+        display: 'block'
     }
 };

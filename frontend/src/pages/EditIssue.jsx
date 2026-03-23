@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getIssueById, updateIssue } from '../services/api';
+import { getIssueById, updateIssue, classifyIssue } from '../services/api';
 import SelectBox from '../components/SelectBox';
 import { CATEGORY_OPTIONS, PRIORITY_OPTIONS } from '../utils/constants';
 import { getImageUrl, getApiUrl } from '../utils/helpers';
@@ -21,6 +21,7 @@ export default function EditIssue() {
     const [saving,   setSaving]   = useState(false);
     const [error,    setError]    = useState('');
     const [success,  setSuccess]  = useState('');
+    const [classifying, setClassifying] = useState(false);
 
     // 📸 Photo states
     const [photos, setPhotos] = useState([]);
@@ -86,6 +87,34 @@ export default function EditIssue() {
             // Remove from new photos
             const newPhotos = photos.filter((_, i) => i !== (index - existingPhotos.length));
             setPhotos(newPhotos);
+        }
+    };
+
+    const handleAiClassify = async () => {
+        if (!form.description.trim()) {
+            setError('Please enter a description first to classify the issue.');
+            return;
+        }
+
+        setClassifying(true);
+        setError('');
+        
+        try {
+            const response = await classifyIssue(form.description);
+            const { category, priority } = response.data;
+            
+            setForm(prev => ({
+                ...prev,
+                category: category || prev.category,
+                priority: priority || prev.priority
+            }));
+            
+            setSuccess('Issue classified successfully using AI!');
+            setTimeout(() => setSuccess(''), 3000);
+        } catch (err) {
+            setError('AI classification failed. Please try again or classify manually.');
+        } finally {
+            setClassifying(false);
         }
     };
 
@@ -212,15 +241,31 @@ export default function EditIssue() {
 
                     <div style={styles.field}>
                         <label style={styles.label}>Description *</label>
-                        <textarea
-                            style={styles.textarea}
-                            name="description"
-                            placeholder="Describe the issue in detail..."
-                            value={form.description}
-                            onChange={handleChange}
-                            rows={5}
-                            required
-                        />
+                        <div style={styles.descriptionContainer}>
+                            <textarea
+                                style={styles.textarea}
+                                name="description"
+                                placeholder="Describe the issue in detail..."
+                                value={form.description}
+                                onChange={handleChange}
+                                rows={5}
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAiClassify}
+                                disabled={classifying || !form.description.trim()}
+                                style={{
+                                    ...styles.aiButton,
+                                    ...(classifying ? styles.aiButtonDisabled : {})
+                                }}
+                            >
+                                {classifying ? '🤖 Classifying...' : '🤖 AI Classify'}
+                            </button>
+                        </div>
+                        {success && success.includes('classified') && (
+                            <div style={styles.aiSuccess}>{success}</div>
+                        )}
                     </div>
 
                     {/* 📸 Photo Upload Section */}
@@ -503,5 +548,38 @@ const styles = {
         fontSize: '8px',
         padding: '2px 4px',
         borderRadius: '2px'
+    },
+    
+    // 🤖 AI Classification Styles
+    descriptionContainer: {
+        position: 'relative'
+    },
+    aiButton: {
+        position: 'absolute',
+        top: '8px',
+        right: '8px',
+        padding: '6px 12px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '20px',
+        fontSize: '12px',
+        cursor: 'pointer',
+        fontWeight: '600',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        zIndex: 10
+    },
+    aiButtonDisabled: {
+        opacity: 0.6,
+        cursor: 'not-allowed'
+    },
+    aiSuccess: {
+        background: '#e3f2fd',
+        color: '#1976d2',
+        padding: '8px 12px',
+        borderRadius: '4px',
+        fontSize: '12px',
+        marginTop: '8px',
+        border: '1px solid #bbdefb'
     }
 };
