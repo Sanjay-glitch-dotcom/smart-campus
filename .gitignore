@@ -5,3 +5,6 @@ backend/uploads/
 *.mv.db
 frontend/node_modules/
 frontend/.env
+.vercel
+.env*.local
+!.env.production
