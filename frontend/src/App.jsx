@@ -21,7 +21,7 @@ const PrivateRoute = ({ children }) => {
 const AdminRoute = ({ children }) => {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" />
-  if (!user.role?.includes('ADMIN')) return <Navigate to="/dashboard" />
+  if (user.role !== 'ROLE_ADMIN') return <Navigate to="/dashboard" />
   return children
 }
 

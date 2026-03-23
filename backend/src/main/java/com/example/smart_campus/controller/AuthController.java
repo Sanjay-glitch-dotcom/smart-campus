@@ -24,12 +24,25 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+        if (request == null) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("message", "Request body is required"));
+        }
         userService.register(request);
         return ResponseEntity.ok(Map.of("message", "Registration successful"));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+        if (request == null) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("message", "Request body is required"));
+        }
+        if (request.getEmail() == null || request.getPassword() == null) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("message", "Email and password are required"));
+        }
+        
         try {
             authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -41,18 +54,22 @@ public class AuthController {
         }
 
         UserDetails userDetails = userService.loadUserByUsername(request.getEmail());
+        if (userDetails == null) {
+            return ResponseEntity.status(401)
+                .body(Map.of("message", "User not found"));
+        }
+        
         String token = jwtService.generateToken(userDetails);
 
-        // Strip ROLE_ prefix when sending to frontend
+        // Send role with ROLE_ prefix for consistency
         String role = userDetails.getAuthorities()
             .iterator().next()
-            .getAuthority()
-            .replace("ROLE_", "");
+            .getAuthority();
 
         return ResponseEntity.ok(Map.of(
             "token", token,
             "email", userDetails.getUsername(),
-            "role",  role    // sends "ADMIN" not "ROLE_ADMIN"
+            "role",  role    // sends "ROLE_ADMIN"
         ));
     }
 }

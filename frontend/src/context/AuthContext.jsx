@@ -12,7 +12,12 @@ export const AuthProvider = ({ children }) => {
         if (token) {
             try {
                 // Basic token validation (you can add more sophisticated validation)
-                const tokenData = JSON.parse(atob(token.split('.')[1]));
+                const tokenParts = token.split('.');
+                if (tokenParts.length !== 3) {
+                    throw new Error('Invalid token format');
+                }
+                
+                const tokenData = JSON.parse(atob(tokenParts[1]));
                 const isExpired = tokenData.exp * 1000 < Date.now();
                 
                 if (!isExpired) {
@@ -24,6 +29,7 @@ export const AuthProvider = ({ children }) => {
                     localStorage.removeItem('email');
                 }
             } catch (error) {
+                console.warn('Invalid token format, clearing authentication data:', error.message);
                 // Invalid token format, clear it
                 localStorage.removeItem('token');
                 localStorage.removeItem('role');
@@ -36,7 +42,7 @@ export const AuthProvider = ({ children }) => {
     // AuthContext.js — confirm this exists
     const login = (data) => {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('role',  data.role);
+        localStorage.setItem('role', data.role);
         localStorage.setItem('email', data.email);
         setUser({ token: data.token, role: data.role, email: data.email });
     };

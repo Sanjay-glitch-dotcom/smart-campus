@@ -106,7 +106,9 @@ public class SecurityConfig {
                         }
                     }
                 } catch (Exception e) {
-                    // ignore
+                    // Log JWT processing errors for debugging
+                    System.err.println("JWT processing error: " + e.getMessage());
+                    // Continue filter chain - authentication will fail later if needed
                 }
 
                 filterChain.doFilter(request, response);
@@ -182,7 +184,8 @@ public class SecurityConfig {
                 "http://localhost:5173",
                 "http://127.0.0.1:3000",
                 "http://localhost:3001",
-                "*" // Allow all origins like Netlify to access the backend
+                "https://smart-campus-frontend.onrender.com",
+                "https://smart-campus-frontend.vercel.app"
         ));
 
         config.setAllowedMethods(List.of(

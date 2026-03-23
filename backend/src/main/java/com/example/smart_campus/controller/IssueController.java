@@ -29,6 +29,9 @@ public class IssueController {
     public ResponseEntity<IssueResponse> submitIssue(
             @Valid @RequestBody IssueRequest request,
             Authentication auth) {
+        if (auth == null || auth.getName() == null) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.status(201)
                 .body(issueService.createIssue(request, auth.getName()));
     }
@@ -37,6 +40,9 @@ public class IssueController {
     @GetMapping("/my")
     @PreAuthorize("hasAnyAuthority('ROLE_STUDENT','ROLE_ADMIN','ROLE_DEPARTMENT_HEAD')")
     public ResponseEntity<List<IssueResponse>> getMyIssues(Authentication auth) {
+        if (auth == null || auth.getName() == null) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok(issueService.getMyIssues(auth.getName()));
     }
 
@@ -46,6 +52,9 @@ public class IssueController {
     public ResponseEntity<IssueResponse> getIssueById(
             @PathVariable Long id,
             Authentication auth) {
+        if (auth == null || auth.getName() == null) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok(issueService.getIssueById(id, auth.getName()));
     }
 
@@ -53,6 +62,9 @@ public class IssueController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN','ROLE_DEPARTMENT_HEAD')")
     public ResponseEntity<List<IssueResponse>> getAllIssues(Authentication auth) {
+        if (auth == null || auth.getName() == null) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok(issueService.getAllIssues(auth.getName()));
     }
 
@@ -63,6 +75,9 @@ public class IssueController {
             @PathVariable Long id,
             @Valid @RequestBody IssueRequest request,
             Authentication auth) {
+        if (auth == null || auth.getName() == null) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
             return ResponseEntity.ok(
                     issueService.updateIssue(id, request, auth.getName()));
@@ -79,6 +94,9 @@ public class IssueController {
             @PathVariable Long id,
             @RequestParam Issue.Status status,
             Authentication auth) {
+        if (auth == null || auth.getName() == null) {
+            return ResponseEntity.badRequest().build();
+        }
         return ResponseEntity.ok(
                 issueService.updateStatus(id, status, auth.getName()));
     }
@@ -89,6 +107,9 @@ public class IssueController {
     public ResponseEntity<Map<String, String>> toggleUpvote(
             @PathVariable Long id,
             Authentication auth) {
+        if (auth == null || auth.getName() == null) {
+            return ResponseEntity.badRequest().build();
+        }
         issueService.toggleUpvote(id, auth.getName());
         return ResponseEntity.ok(
                 Map.of("message", "Upvote toggled successfully"));
@@ -100,6 +121,9 @@ public class IssueController {
     public ResponseEntity<?> deleteIssue(
             @PathVariable Long id,
             Authentication auth) {
+        if (auth == null || auth.getName() == null) {
+            return ResponseEntity.badRequest().build();
+        }
         try {
             issueService.deleteIssue(id, auth.getName());
             return ResponseEntity.ok(
