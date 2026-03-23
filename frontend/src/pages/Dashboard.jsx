@@ -89,9 +89,11 @@ export default function Dashboard() {
                 <div style={styles.navRight}>
                     <DarkModeToggle />
                     <span style={styles.navEmail}>{user?.email}</span>
-                    <Link to="/issues/new" style={styles.navBtn}>
-                        + Report Issue
-                    </Link>
+                    {user?.role !== 'ADMIN' && (
+                        <Link to="/issues/new" style={styles.navBtn}>
+                            + Report Issue
+                        </Link>
+                    )}
                     <button onClick={handleLogout} style={styles.logoutBtn}>
                         Logout
                     </button>
@@ -143,9 +145,11 @@ export default function Dashboard() {
                         <p style={{ marginBottom: '12px', color: 'var(--text-secondary)' }}>
                             No issues found.
                         </p>
-                        <Link to="/issues/new" style={styles.emptyLink}>
-                            Report your first issue →
-                        </Link>
+                        {user?.role !== 'ADMIN' && (
+                            <Link to="/issues/new" style={styles.emptyLink}>
+                                Report your first issue →
+                            </Link>
+                        )}
                     </div>
 
                 ) : (

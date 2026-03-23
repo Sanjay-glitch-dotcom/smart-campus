@@ -34,10 +34,19 @@ export default function IssueDetail() {
     };
 
     useEffect(() => {
-        getIssueById(id)
-            .then(res => setIssue(res.data))
-            .catch(() => setError('Issue not found or access denied'))
-            .finally(() => setLoading(false));
+        const fetchIssue = async () => {
+            try {
+                const res = await getIssueById(id);
+                setIssue(res.data);
+                setError('');
+            } catch (err) {
+                setError('Issue not found or access denied');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchIssue();
 
         // ✅ Add this - refresh when window gets focus
         const handleFocus = () => {
@@ -56,7 +65,7 @@ export default function IssueDetail() {
         if (window.confirm('Are you sure you want to delete this issue?')) {
             try {
                 await deleteIssue(id);
-                navigate('/dashboard');
+                navigate(getBackDestination());
             } catch (err) {
                 alert(err.response?.data?.message || 'Failed to delete issue');
             }
