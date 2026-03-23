@@ -47,6 +47,5 @@
         }
       ]
     }
-  ],
-  "description": "SPA routing configuration for React app with security headers"
+  ]
 }
