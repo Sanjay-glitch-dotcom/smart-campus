@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { submitIssue, getIssueById, updateIssue, classifyIssue } from '../services/api';
 import SelectBox from '../components/SelectBox';
 import { CATEGORY_OPTIONS, PRIORITY_OPTIONS } from '../utils/constants';
-import { getApiUrl } from '../utils/helpers';
+import { submitIssue, updateIssue, getIssueById } from '../services/api';
+import { getApiUrl, classifyIssue } from '../services/api';
 
-export default function IssueForm() {
+function IssueForm() {
     const navigate = useNavigate();
     const { id } = useParams();
-    const isEdit = !!id;
-    
+    const isEdit = Boolean(id);
+
     const [form, setForm] = useState({
         title: '',
         description: '',
@@ -17,20 +17,18 @@ export default function IssueForm() {
         priority: 'MEDIUM',
         location: ''
     });
-
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
     const [aiClassifying, setAiClassifying] = useState(false);
-
     const [photos, setPhotos] = useState([]);
     const [preview, setPreview] = useState([]);
 
     useEffect(() => {
         if (isEdit) {
             getIssueById(id)
-                .then(res => {
-                    const issue = res.data;
+                .then(response => {
+                    const issue = response.data;
                     setForm({
                         title: issue.title,
                         description: issue.description,
@@ -45,22 +43,16 @@ export default function IssueForm() {
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
-        
-        // Trigger AI classification when description changes
-        if (e.target.name === 'description' && e.target.value.length > 10) {
-            classifyDescription(e.target.value);
-        }
     };
 
     const classifyDescription = async (description) => {
-        if (aiClassifying) return; // Prevent multiple simultaneous calls
+        if (aiClassifying) return;
         
         setAiClassifying(true);
         try {
             const response = await classifyIssue(description);
             const { category, priority } = response.data;
             
-            // Update form with AI-suggested values
             setForm(prev => ({
                 ...prev,
                 category: category || prev.category,
@@ -68,7 +60,6 @@ export default function IssueForm() {
             }));
         } catch (err) {
             console.warn('AI classification failed:', err);
-            // Silently fail - user can still manually select
         } finally {
             setAiClassifying(false);
         }
@@ -102,7 +93,6 @@ export default function IssueForm() {
         setLoading(true);
 
         try {
-            // 1. Upload photos in parallel for better performance
             let photoUrls = [];
             
             if (photos.length > 0) {
@@ -113,30 +103,21 @@ export default function IssueForm() {
                     const response = await fetch(`${getApiUrl()}/files/upload`, {
                         method: 'POST',
                         body: formData,
-                        signal: AbortSignal.timeout(30000) // 30 second timeout
+                        signal: AbortSignal.timeout(30000)
                     });
 
                     const result = await response.json();
                     
-                    if (!response.ok) {
-                        throw new Error(result.message || `Failed to upload ${file.name}`);
-                    }
-                    
-                    if (!result.success) {
+                    if (!response.ok || !result.success) {
                         throw new Error(result.message || `Failed to upload ${file.name}`);
                     }
                     
                     return result.photoUrl;
                 });
 
-                try {
-                    photoUrls = await Promise.all(uploadPromises);
-                } catch (uploadError) {
-                    throw new Error('Photo upload failed: ' + uploadError.message);
-                }
+                photoUrls = await Promise.all(uploadPromises);
             }
 
-            // 2. Prepare issue data
             const issueData = {
                 title: form.title,
                 description: form.description,
@@ -146,7 +127,6 @@ export default function IssueForm() {
                 photoUrls: photoUrls
             };
 
-            // 3. Submit or update
             if (isEdit) {
                 await updateIssue(id, issueData);
                 setSuccess('Issue updated successfully!');
@@ -155,7 +135,6 @@ export default function IssueForm() {
                 setSuccess('Issue submitted successfully!');
             }
 
-            // 4. Navigate after a short delay to show success message
             setTimeout(() => navigate('/dashboard'), 1500);
 
         } catch (err) {
@@ -204,7 +183,6 @@ export default function IssueForm() {
                                 placeholder="-- Select Category --"
                                 required
                             />
-                            {aiClassifying && <small style={styles.aiHint}>AI will suggest category based on description</small>}
                         </div>
                         <div style={{ ...styles.field, flex: 1 }}>
                             <SelectBox
@@ -216,7 +194,6 @@ export default function IssueForm() {
                                 placeholder="-- Select Priority --"
                                 required
                             />
-                            {aiClassifying && <small style={styles.aiHint}>AI will suggest priority based on description</small>}
                         </div>
                     </div>
 
@@ -261,7 +238,6 @@ export default function IssueForm() {
                         {aiClassifying && <small style={styles.aiHint}>AI is analyzing your description...</small>}
                     </div>
 
-                    {/* 📸 Photo Upload Section */}
                     <div style={styles.field}>
                         <label style={styles.label}>Add Photos</label>
                         <div style={styles.photoButtons}>
@@ -302,7 +278,6 @@ export default function IssueForm() {
                         </small>
                     </div>
 
-                    {/* 🖼️ Photo Preview */}
                     {preview.length > 0 && (
                         <div style={styles.previewSection}>
                             <div style={styles.previewHeader}>
@@ -343,9 +318,6 @@ export default function IssueForm() {
                     </button>
                 </form>
             </div>
-
-            {error && <div style={styles.error}>{error}</div>}
-            {success && <div style={styles.success}>{success}</div>}
         </div>
     );
 }
@@ -425,7 +397,7 @@ const styles = {
         boxSizing:'border-box',
         background:'var(--input-bg)',
         color:'var(--text-primary)',
-        minHeight: '44px' // Touch-friendly
+        minHeight: '44px'
     },
     textarea: {
         width:'100%',
@@ -437,7 +409,7 @@ const styles = {
         resize:'vertical',
         background:'var(--input-bg)',
         color:'var(--text-primary)',
-        minHeight: '120px' // Touch-friendly
+        minHeight: '120px'
     },
     button: {
         width:'100%',
@@ -449,9 +421,8 @@ const styles = {
         fontSize:'16px',
         cursor:'pointer',
         fontWeight:'600',
-        minHeight: '48px' // Touch-friendly
+        minHeight: '48px'
     },
-    // 🎨 New Photo Upload Styles
     photoButtons: {
         display: 'flex',
         gap: '10px',
@@ -541,7 +512,6 @@ const styles = {
         marginTop: '4px',
         display: 'block'
     },
-    // 🤖 AI Classification Styles
     descriptionContainer: {
         position: 'relative'
     },
@@ -554,7 +524,7 @@ const styles = {
         color: '#fff',
         border: 'none',
         borderRadius: '20px',
-        fontSize: '12px',
+        fontSize: '14px',
         cursor: 'pointer',
         fontWeight: '600',
         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
@@ -565,3 +535,5 @@ const styles = {
         cursor: 'not-allowed'
     }
 };
+
+export default IssueForm;
