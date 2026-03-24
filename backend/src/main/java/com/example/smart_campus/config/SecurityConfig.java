@@ -46,6 +46,7 @@ public class SecurityConfig {
 
     private final JwtService jwtService;
     private final UserService userService;
+    private final WebConfig webConfig;
 
     @Bean
     public OncePerRequestFilter jwtAuthFilter() {
@@ -121,7 +122,7 @@ public class SecurityConfig {
                                            OncePerRequestFilter jwtAuthFilter) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(cors -> cors.configurationSource(webConfig.corsConfigurationSource()))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
@@ -167,47 +168,15 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/api/issues/**")
                     .hasAnyAuthority("ROLE_ADMIN", "ROLE_DEPARTMENT_HEAD")
 
+                .requestMatchers(HttpMethod.POST, "/api/ai/classify")
+                    .permitAll()
+
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-
-        config.setAllowedOriginPatterns(List.of(
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://127.0.0.1:3000",
-                "http://localhost:3001",
-                "https://smart-campus-frontend.onrender.com",
-                "https://smart-campus-frontend.vercel.app",
-                "https://smart-campus-green.vercel.app"
-        ));
-
-        config.setAllowedMethods(List.of(
-                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
-        ));
-
-        config.setAllowedHeaders(List.of(
-                "Authorization",
-                "Content-Type",
-                "Accept",
-                "Origin",
-                "X-Requested-With"
-        ));
-
-        config.setExposedHeaders(List.of("Authorization"));
-        config.setAllowCredentials(true);
-        config.setMaxAge(3600L);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
     }
 
     @Bean
