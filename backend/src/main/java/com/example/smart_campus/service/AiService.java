@@ -25,12 +25,16 @@ public class AiService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AiClassificationResponse classifyIssue(String description) {
+        log.info("Starting AI classification for description: {}", description.substring(0, Math.min(50, description.length())) + "...");
+        
         try {
             if (openaiApiKey == null || openaiApiKey.trim().isEmpty()) {
-                log.warn("OpenAI API key not configured, using fallback classification");
+                log.error("OpenAI API key not configured! Key is null or empty. Current value: '{}'", openaiApiKey);
                 return fallbackClassification(description);
             }
-
+            
+            log.info("Using OpenAI API key (first 10 chars): {}...", openaiApiKey.substring(0, Math.min(10, openaiApiKey.length())));
+            
             String prompt = buildPrompt(description);
             
             HttpHeaders headers = new HttpHeaders();
