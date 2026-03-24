@@ -236,15 +236,29 @@ export default function IssueForm() {
                             Description *
                             {aiClassifying && <span style={styles.aiIndicator}> 🤖 AI is categorizing...</span>}
                         </label>
-                        <textarea
-                            style={styles.textarea}
-                            name="description"
-                            placeholder="Describe the issue in detail... (AI will auto-categorize)"
-                            value={form.description}
-                            onChange={handleChange}
-                            rows={5}
-                            required
-                        />
+                        <div style={styles.descriptionContainer}>
+                            <textarea
+                                style={styles.textarea}
+                                name="description"
+                                placeholder="Describe the issue in detail..."
+                                value={form.description}
+                                onChange={handleChange}
+                                rows={5}
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => classifyDescription(form.description)}
+                                disabled={aiClassifying || !form.description.trim()}
+                                style={{
+                                    ...styles.aiButton,
+                                    ...(aiClassifying ? styles.aiButtonDisabled : {})
+                                }}
+                            >
+                                {aiClassifying ? '🤖 Classifying...' : '🤖 AI Classify'}
+                            </button>
+                        </div>
+                        {aiClassifying && <small style={styles.aiHint}>AI is analyzing your description...</small>}
                     </div>
 
                     {/* 📸 Photo Upload Section */}
@@ -526,5 +540,28 @@ const styles = {
         fontStyle: 'italic',
         marginTop: '4px',
         display: 'block'
+    },
+    // 🤖 AI Classification Styles
+    descriptionContainer: {
+        position: 'relative'
+    },
+    aiButton: {
+        position: 'absolute',
+        top: '8px',
+        right: '8px',
+        padding: '6px 12px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '20px',
+        fontSize: '12px',
+        cursor: 'pointer',
+        fontWeight: '600',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        zIndex: 10
+    },
+    aiButtonDisabled: {
+        opacity: 0.6,
+        cursor: 'not-allowed'
     }
 };
