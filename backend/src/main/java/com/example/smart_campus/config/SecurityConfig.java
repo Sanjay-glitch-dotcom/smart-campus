@@ -46,7 +46,6 @@ public class SecurityConfig {
 
     private final JwtService jwtService;
     private final UserService userService;
-    private final WebConfig webConfig;
 
     @Bean
     public OncePerRequestFilter jwtAuthFilter() {
@@ -122,7 +121,7 @@ public class SecurityConfig {
                                            OncePerRequestFilter jwtAuthFilter) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> cors.configurationSource(webConfig.corsConfigurationSource()))
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
@@ -177,6 +176,32 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        
+        // Allow all origins for development and production
+        config.setAllowedOriginPatterns(List.of("*"));
+        
+        // Allow all headers
+        config.setAllowedHeaders(List.of("*"));
+        
+        // Allow all methods
+        config.setAllowedMethods(List.of(
+            "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+        ));
+        
+        // Allow credentials
+        config.setAllowCredentials(true);
+        
+        // Set max age
+        config.setMaxAge(3600L);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean
