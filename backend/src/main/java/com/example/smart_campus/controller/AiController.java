@@ -21,14 +21,17 @@ public class AiController {
             log.info("Received AI classification request for description: {}", 
                 request.getDescription() != null ? request.getDescription().substring(0, Math.min(50, request.getDescription().length())) + "..." : "null");
             
+            // Try AI classification first
             AiClassificationResponse response = aiService.classifyIssue(request.getDescription());
             log.info("AI classification result: category={}, priority={}", response.getCategory(), response.getPriority());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("AI classification failed: {}", e.getMessage(), e);
-            return ResponseEntity.internalServerError()
-                .body(new AiClassificationResponse("Others", "Medium"));
+            
+            // Always return a valid fallback instead of 500 error
+            log.warn("Returning fallback classification due to error");
+            return ResponseEntity.ok(aiService.fallbackClassification(request.getDescription()));
         }
     }
 

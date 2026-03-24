@@ -170,7 +170,7 @@ public class AiService {
         return "Medium";
     }
 
-    private AiClassificationResponse fallbackClassification(String description) {
+    public AiClassificationResponse fallbackClassification(String description) {
         // Simple keyword-based fallback classification
         String desc = description.toLowerCase();
         
