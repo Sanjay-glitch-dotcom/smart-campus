@@ -232,7 +232,7 @@ function IssueForm() {
                                     ...(aiClassifying ? styles.aiButtonDisabled : {})
                                 }}
                             >
-                                {aiClassifying ? '🤖 Classifying...' : '🤖 AI Classify v2.0'}
+                                {aiClassifying ? '🤖 Classifying...' : '🤖 AI Classify v3.0 - FINAL'}
                             </button>
                         </div>
                         {aiClassifying && <small style={styles.aiHint}>AI is analyzing your description...</small>}
