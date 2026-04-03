@@ -1,10 +1,40 @@
+# IDE and Editor files
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backend
 backend/target/
 backend/data/
 backend/uploads/
+backend/app.log
 *.mv.db
+
+# Frontend
 frontend/node_modules/
-frontend/.env
+frontend/dist/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Environment files (CRITICAL!)
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Deployment
 .vercel
-.env*.local
-!.env.production
+.vercel/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
