@@ -232,7 +232,7 @@ function IssueForm() {
                                     ...(aiClassifying ? styles.aiButtonDisabled : {})
                                 }}
                             >
-                                {aiClassifying ? '🤖 Classifying...' : '🤖 AI Classify v3.0'}
+                                {aiClassifying ? '🔄' : '🤖'}
                             </button>
                         </div>
                         {aiClassifying && <small style={styles.aiHint}>AI is analyzing your description...</small>}
@@ -519,15 +519,15 @@ const styles = {
         position: 'absolute',
         top: '8px',
         right: '8px',
-        padding: '6px 12px',
+        padding: '4px 8px',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         color: '#fff',
         border: 'none',
-        borderRadius: '20px',
-        fontSize: '14px',
+        borderRadius: '12px',
+        fontSize: '11px',
         cursor: 'pointer',
-        fontWeight: '600',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+        fontWeight: '500',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
         zIndex: 10
     },
     aiButtonDisabled: {
